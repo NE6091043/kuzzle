@@ -112,7 +112,7 @@ export abstract class Controller {
 /**
  * Type for handler attached to Kuzzle events. Either hooks or pipes.
  */
-type EventHandler = (...payload: any) => Promise<any> | any
+export type EventHandler = (...payload: any) => Promise<any> | any
 
 /**
  * Plugins must implements this interface.
