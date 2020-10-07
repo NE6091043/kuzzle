@@ -66,7 +66,7 @@ export interface ControllerDefinition {
         /**
          * Route path.
          * A route starting with `/` will be prefixed by `/_` otherwise the route
-         * will be prefixed by `/_/<application-name>/`
+         * will be prefixed by `/_/<application-name>/`.
          */
         path: string
       }>
@@ -90,6 +90,17 @@ export abstract class Controller {
 
   /**
    * Controller definition
+   *
+   * @example
+   *
+   * {
+   *   actions: {
+   *     sayHello: {
+   *       handler: async request => `Hello, ${request.input.args.name}`,
+   *       http: [{ verb: 'POST', path: '/greeting/hello/:name' }]
+   *     }
+   *   }
+   * }
    */
   public definition: ControllerDefinition;
 
@@ -106,21 +117,36 @@ type EventHandler = (...payload: any) => Promise<any> | any
 /**
  * Plugins must implements this interface.
  */
-export abstract class BasePlugin {
+export abstract class Plugin {
   /**
    * Plugin context.
    *
-   * Must be set in the plugin init() method before use
+   * Must be set in the plugin init() method before use.
    */
   protected context?: any;
 
   /**
-   * Plugin config
+   * Plugin config.
+   *
+   * Must be set in the plugin init() method before use.
    */
   protected config?: JSONObject;
 
   /**
-   * Define new API controllers within this object
+   * Define new API controllers.
+   *
+   * @example
+   *
+   * this.api = {
+   *   email: {
+   *     actions: {
+   *       send: {
+   *         handler: async request => ...,
+   *         http: [{ verb: 'post', path: '/email/send' }]
+   *       }
+   *     }
+   *   }
+   * }
    */
   public api?: {
     /**
@@ -132,9 +158,11 @@ export abstract class BasePlugin {
   }
 
   /**
-   * Define new API controllers within this object.
+   * Define new API controllers.
    *
-   * @deprecated you should use this.api instead
+   * @deprecated you should use the "api" object instead
+   *
+   * @see https://docs.kuzzle.io/core/2/plugins/guides/controllers/
    */
   public controllers?: {
     /**
@@ -151,27 +179,82 @@ export abstract class BasePlugin {
   }
 
   /**
-   * Define hooks on Kuzzle events within this object.
+   * Defines HTTP routes for plugin actions.
+   *
+   * @deprecated you should use the "api" object instead
+   *
+   * @see https://docs.kuzzle.io/core/2/plugins/guides/controllers/
+   */
+  public routes?: Array<{
+    /**
+     * HTTP verb.
+     */
+    verb: string;
+
+    /**
+     * Controller name.
+     */
+    controller: string;
+
+    /**
+     * Action name.
+     */
+    action: string;
+
+    /**
+     * Route path.
+     *
+     * A route starting with `/` will be prefixed by `/_` otherwise the route
+     * will be prefixed by `/_/<application-name>/`.
+     */
+    path?: string;
+
+    /**
+     * Route path.
+     *
+     * @deprecated use "path" property instead
+     */
+    url?: string;
+  }>
+
+  /**
+   * Define hooks on Kuzzle events.
+   *
+   * @see https://docs.kuzzle.io/core/2/plugins/guides/hooks/
+   *
+   * @example
+   *
+   * this.hooks = {
+   *   'security:afterCreateUser': async request => ...
+   * }
    */
   public hooks?: {
     /**
      * Event name or wildcard event.
      */
-    [event: string]: EventHandler[] | EventHandler
+    [event: string]: Array<EventHandler> | EventHandler | string
   }
 
   /**
-   * Define pipes on Kuzzle events within this object.
+   * Define pipes on Kuzzle events.
+   *
+   * @see https://docs.kuzzle.io/core/2/plugins/guides/pipes/
+   *
+   * @example
+   *
+   * this.pipes = {
+   *   'document:generic:beforeWrite': async (documents, request) => ...
+   * }
    */
   public pipes?: {
     /**
      * Event name or wildcard event.
      */
-    [event: string]: EventHandler[] | EventHandler
+    [event: string]: Array<EventHandler> | EventHandler | string
   }
 
   /**
-   * Define authenticator classes used by strategies within this object.
+   * Define authenticator classes used by strategies.
    *
    * @see https://docs.kuzzle.io/core/2/plugins/guides/strategies/overview
    */
@@ -183,7 +266,7 @@ export abstract class BasePlugin {
   }
 
   /**
-   * Define authentications strategies within this object.
+   * Define authentications strategies.
    *
    * @see https://docs.kuzzle.io/core/2/plugins/guides/strategies/overview
    */
@@ -226,6 +309,8 @@ export abstract class BasePlugin {
    *
    * Will be called during plugin initialization before Kuzzle starts to serve
    * requests.
+   *
+   * @see https://docs.kuzzle.io/core/2/plugins/guides/manual-setup/init-function/
    */
   abstract init (config: JSONObject, context: any): Promise<any> | any
 }
